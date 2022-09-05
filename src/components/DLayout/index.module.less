@@ -1,0 +1,65 @@
+.rightContent {
+  display: flex;
+  align-items: center;
+  -webkit-app-region: no-drag;
+  &.win32 {
+    margin-right: 140px;
+  }
+  .settingBtn, .languageBtn {
+    margin-right: 10px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+
+    &:hover {
+      background-color: rgb(46, 113, 187);
+    }
+  }
+  .languageBtn {
+    font-size: 18px;
+  }
+  .account {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    background-color: rgba(46, 113, 187, .6);
+    height: 30px;
+    padding: 5px 10px 5px 15px;
+    border-radius: 15px;
+    &:hover {
+      background-color: rgb(46, 113, 187);
+    }
+    .name {
+      color: #fff;
+    }
+    .userIcon {
+      margin-left: 8px;
+      cursor: pointer;
+      color: #fff;
+    }
+  }
+}
+.layout {
+  :global {
+    .ant-layout-header {
+      -webkit-app-region: drag;
+    }
+    .ant-layout {
+      background-color: #fff;
+    }
+    .ant-pro-global-header-layout-mix {
+      background-color: #2496ed;
+    }
+    .ant-pro-sider-light {
+      background-color: rgb(233, 235, 238);
+      box-shadow: none!important;
+      user-select: none;
+    }
+  }
+  .appTitle {
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    text-align: center;
+  }
+}
