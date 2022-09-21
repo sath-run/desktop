@@ -1,5 +1,5 @@
 import Logo from '@/assets/imgs/logo.png';
-import {Card, Carousel, Col, Progress, Row, Statistic, Typography} from "antd";
+import {Card, Carousel, Col, message, Progress, Row, Statistic, Typography} from "antd";
 import {useEffect, useRef, useState} from "react";
 import {PauseCircleFilled, PlayCircleFilled} from "@ant-design/icons";
 import {JOB_STATUS, MY_JOB_LIST} from "@/constants";
@@ -10,12 +10,15 @@ import Description from "@/pages/Description";
 import Styles from './index.module.less';
 import NewsIcon from './img/single.png';
 
+type ApiResult = {
+  status: Number,
+  data: any
+}
 type Status = 'default' | 'waiting' | 'running' | 'complete' | 'noJob';
 type SystemInfo = {
   cpu: number,
   memory: number
 }
-
 let taskId: NodeJS.Timer;
 
 function Home() {
@@ -35,72 +38,31 @@ function Home() {
   })
   const onStart = () => {
     setStatus('waiting');
-    window.electron?.EventsOn("job-did-start", ({id, program}: { id: number, program: string }) => {
-      console.info('job-did-start......:', id)
-      const jobData: API.TaskJob = {
-        id,
-        algo: program,
-        status: JOB_STATUS.RUNNING,
-        dispatchedAt: new Date().getTime(),
-      };
-      if (myJobList.current.every(item => item.id !== id)) {
-        myJobList.current.push(jobData);
-      } else {
-        myJobList.current.some(job => {
-          if (job.id === id) {
-            job.dispatchedAt = new Date().getTime();
-          }
-        })
-      }
-      localStorage.setItem(MY_JOB_LIST, JSON.stringify(myJobList.current));
-    })
-    window.electron?.EventsOn("progress", (data: { id: number, progress: number }) => {
+    window.electron?.EventsOn("progress", (data: {
+      status: string,
+      progress: number
+    }) => {
       console.info('progress:', data)
-      setPercent(data.progress);
-      myJobList.current.forEach(job => {
-        if (job.id === data.id) {
-          job.progress = data.progress;
-          if (data.progress === 100) {
-            job.status = JOB_STATUS.SUCCESS;
-            job.completedAt = new Date().getTime();
-            setJobCount(prevState => prevState + 1);
-          }
-        }
-      })
-      localStorage.setItem(MY_JOB_LIST, JSON.stringify(myJobList.current));
-    })
-    window.electron?.EventsOn("docker-pull", () => {
-      setStatus('waiting');
+      setPercent(Math.ceil(data.progress*10)/10);
+      if(data.status === 'success'){
+        setJobCount(prevState => prevState + 1);
+        setScore(prevState => prevState + 10);
+      }
     })
     window.electron?.EventsOn("no-job", () => {
       setStatus('noJob');
     })
     window.electron?.EventsOn('job-error', ({id}: { id: number }) => {
-      myJobList.current.forEach(job => {
-        if (job.id === id) {
-          job.status = JOB_STATUS.STOPPED;
-        }
-      })
-      localStorage.setItem(MY_JOB_LIST, JSON.stringify(myJobList.current));
+
     })
-    window.electron?.EventsOn('job-will-complete', ({id}: { id: number }) => {
-      let count = 0;
-      myJobList.current.forEach(job => {
-        if (job.id === id) {
-          job.status = JOB_STATUS.SUCCESS;
-          job.completedAt = new Date().getTime();
-        }
-        if (job.status === JOB_STATUS.SUCCESS) {
-          count++;
-        }
-      })
-      setJobCount(count);
-      setScore(prevState => prevState += 10);
-      localStorage.setItem(MY_JOB_LIST, JSON.stringify(myJobList.current));
-    })
-    window.electron.invoke('Dock', {dockerAddress: DOCKER_ADDRESS}, (result: string) => {
+    window.electron.invoke('startJob', {}, (result: ApiResult) => {
       console.info('result:', result)
-      setStatus('running');
+      if(result.status === 200){
+        setStatus('running');
+      }else{
+        message.error(result.data);
+        setStatus('default')
+      }
     })
   }
   const newsList = [{
@@ -114,10 +76,8 @@ function Home() {
     setStatus('default');
     setPercent(0);
     window.electron?.EventsOff("progress");
-    window.electron?.EventsOff("docker-pull");
     window.electron?.EventsOff("no-job");
-    window.electron?.EventsOff("job-did-complete");
-    window.electron.invoke('stopJob', {}, (result: { cpu: number, memory: number }) => {})
+    window.electron.invoke('stopJob', {}, () => {})
   }
   useEffect(() => {
     taskId = setInterval(() => {
@@ -136,9 +96,7 @@ function Home() {
     setJobCount(count);
     return function cleanup() {
       window.electron?.EventsOff("progress");
-      window.electron?.EventsOff("docker-pull");
       window.electron?.EventsOff("no-job");
-      window.electron?.EventsOff("job-did-complete");
       clearInterval(taskId);
     }
   }, [])

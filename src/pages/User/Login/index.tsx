@@ -42,7 +42,7 @@ const Login: React.FC<{
     }
   };
   return (
-    <Modal className={styles.pageLogin} width={440} visible={visible} footer={null} onCancel={onCancel}>
+    <Modal className={styles.pageLogin} width={440} open={visible} footer={null} onCancel={onCancel}>
       <Form
         className={styles.loginForm}
         initialValues={{

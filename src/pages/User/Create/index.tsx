@@ -55,7 +55,7 @@ const CreateUser: React.FC<{
     }
   };
   return (
-    <Modal className={styles.pageLogin} visible={visible} footer={null} onCancel={onCancel}>
+    <Modal className={styles.pageLogin} open={visible} footer={null} onCancel={onCancel}>
       <Form
         className={styles.loginForm}
         initialValues={{}}

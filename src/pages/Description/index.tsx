@@ -4,7 +4,7 @@ import {Modal} from "antd";
 import React from "react";
 
 const Description:React.FC<{visible: boolean, onCancel: () => any}> = ({visible, onCancel}) => {
-    return (<Modal visible={visible} centered width={620} footer={null} onCancel={onCancel}>
+    return (<Modal open={visible} centered width={620} footer={null} onCancel={onCancel}>
             <div className={styles.content}>
                 <h2 className={classNames(styles.title)}>实验室简介</h2>
                 <div className={styles.desc}>
