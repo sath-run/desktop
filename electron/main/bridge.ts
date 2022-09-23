@@ -1,4 +1,7 @@
 import {app, BrowserWindow, ipcMain, net} from 'electron'
+import IpcMainEvent = Electron.IpcMainEvent;
+
+type ClientRequestConstructorOptions = Electron.ClientRequestConstructorOptions;
 
 ipcMain.on('postMessage', async (event, message) => {
     switch (message.bridgeName) {
@@ -9,11 +12,16 @@ ipcMain.on('postMessage', async (event, message) => {
             stopJob(event, message);
             break;
         case 'request':
+            const result = await request(message.data);
             event.reply('receiveMessage', {
-                bridgeName: 'startJob',
+                bridgeName: 'request',
                 cid: message.cid,
-                data: await request(message.data),
+                data: result,
             })
+            break;
+        case 'setToken':
+            setToken(event, message);
+            break;
         case 'platform':
             event.reply('receiveMessage', {
                 bridgeName: message.bridgeName,
@@ -43,7 +51,7 @@ ipcMain.on('postMessage', async (event, message) => {
 })
 
 
-const startJob = async (event, message) => {
+const startJob = async (event: IpcMainEvent, message: any) => {
     const result = await request({
         method: 'POST',
         url: 'http://localhost:33566/services/start'
@@ -56,6 +64,18 @@ const startJob = async (event, message) => {
     if (result.status === 200) {
         startListener()
     }
+}
+
+const setToken = async (event: IpcMainEvent, message: any) => {
+    const result = await request({
+        method: 'PATCH',
+        url: 'http://localhost:33566/users/token'
+    })
+    event.reply('receiveMessage', {
+        bridgeName: 'setToken',
+        cid: message.cid,
+        data: result,
+    })
 }
 
 const startListener = async () => {
@@ -78,7 +98,7 @@ const startListener = async () => {
     request.end();
 }
 
-const stopJob = async (event, message) => {
+const stopJob = async (event: IpcMainEvent, message: any) => {
     const result = await request({
         method: 'POST',
         url: 'http://localhost:33566/services/stop'
@@ -90,15 +110,19 @@ const stopJob = async (event, message) => {
     })
 }
 
-const request = (options) => {
+const request = (options: ClientRequestConstructorOptions & { headers?: { [propName: string]: string }, data?: any }) => {
     return new Promise<{
         status: number,
         data: any
     }>(resolve => {
-        const sendData = JSON.stringify(options.data || '{}');
-        console.info( sendData.length)
-        const request = net.request({...options});
-        request.setHeader('Content-Type', 'application/json')
+        console.info(options)
+        const request = net.request(options);
+        request.setHeader('Content-Type', 'application/json');
+        if (options.headers) {
+            Object.keys(options.headers).forEach(key => {
+                request.setHeader(key, options.headers ? options.headers[key] : '');
+            })
+        }
         request.on('response', (response) => {
             let dataList = Buffer.alloc(0);
             response.on('data', (chunk) => {
@@ -118,11 +142,11 @@ const request = (options) => {
                 })
             })
         })
-        console.info('sendData:', sendData)
+        console.info('sendData:', JSON.stringify(options.data || '{}'))
         request.on('error', error => {
             console.error(error)
         })
-        request.write(sendData)
+        request.write(JSON.stringify(options.data || '{}'))
         request.end()
     })
 }

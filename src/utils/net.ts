@@ -1,7 +1,10 @@
 interface Options {
-    method?: string;
-    url?: string | undefined;
-    data?: any
+    method?: 'GET'|'POST'|'PUT'|'DELETE'|'PATCH';
+    url: string | undefined;
+    data?: any,
+    headers?: {
+        [propName: string]: string
+    }
 }
 
 export function request<T>(options: Options | string) {

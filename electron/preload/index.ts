@@ -1,72 +1,70 @@
 import {contextBridge, ipcRenderer} from 'electron'
 
-let invokeCId = 0
-const invokeCallbacks = {}
+const invokeCallbacks: { [propName: string]: (args: any) => any } = {}
 type Message = {
-  bridgeName: string,
-  cid: number,
-  data: any
+    bridgeName: string,
+    cid: string,
+    data: any
 }
 // 注册 nativeBridge
 contextBridge.exposeInMainWorld(
-  'electron',
-  {
-    invoke(bridgeName, data, callback) {
-      if (typeof bridgeName !== 'string') {
-        throw new Error('Invoke failed!')
-      }
-      if (!callback && typeof data === 'function') {
-        callback = data;
-        data = {};
-      }
-      // 与 Native 的通信信息
-      const message: Message = {bridgeName} as Message;
-      if (typeof data !== 'undefined' || data !== null) {
-        message.data = data
-      }
-      if (typeof callback !== 'function') {
-        callback = () => null
-      }
-      invokeCId = invokeCId + 1
-      // 存储回调函数
-      invokeCallbacks[invokeCId] = callback
-      message.cid = invokeCId
-      ipcRenderer.send('postMessage', message)
-      ipcRenderer.once('receiveMessage', (_, message): void => {
-        const {data, cid, error} = message
-        // 如果存在方法名，则调用对应函数
-        if (typeof cid === 'number' && cid >= 1) {
-          if (typeof error !== 'undefined') {
-            invokeCallbacks[invokeCId](error)
-            delete invokeCallbacks[invokeCId]
-          } else if (invokeCallbacks[invokeCId]) {
-            invokeCallbacks[cid](data)
-            delete invokeCallbacks[invokeCId]
-          } else {
-            throw new Error('Invalid callback id')
-          }
-        } else {
-          throw new Error('message format error')
+    'electron',
+    {
+        invoke(bridgeName: string, data: any, callback: () => any) {
+            if (typeof bridgeName !== 'string') {
+                throw new Error('Invoke failed!')
+            }
+            if (!callback && typeof data === 'function') {
+                callback = data;
+                data = {};
+            }
+            // 与 Native 的通信信息
+            const message: Message = {bridgeName} as Message;
+            if (typeof data !== 'undefined' || data !== null) {
+                message.data = data
+            }
+            if (typeof callback !== 'function') {
+                callback = () => null
+            }
+            const invokeCId = `${bridgeName}_${Date.now()}`;
+            // 存储回调函数
+            invokeCallbacks[invokeCId] = callback
+            message.cid = invokeCId
+            ipcRenderer.send('postMessage', message)
+            ipcRenderer.once('receiveMessage', (_, message): void => {
+                const {data, cid, error} = message
+                if (cid) {
+                    if (typeof error !== 'undefined') {
+                        invokeCallbacks[cid](error)
+                        delete invokeCallbacks[cid]
+                    } else if (invokeCallbacks[cid]) {
+                        invokeCallbacks[cid](data)
+                        delete invokeCallbacks[cid]
+                    } else {
+                        throw new Error('Invalid callback id')
+                    }
+                } else {
+                    throw new Error('message format error')
+                }
+            })
+        },
+        EventsOn(event: string, callback: (args: any) => any) {
+            if (typeof event !== 'string') {
+                throw new Error('event failed!')
+            }
+            ipcRenderer.on(event, (_, data) => {
+                callback && callback(data);
+            })
+        },
+        EventsOff(event: string, callback: (args: any) => any) {
+            if (typeof event !== 'string') {
+                throw new Error('event failed!')
+            }
+            if (callback) {
+                ipcRenderer.removeListener(event, callback)
+            } else {
+                ipcRenderer.removeAllListeners(event)
+            }
         }
-      })
-    },
-    EventsOn(event, callback) {
-      if (typeof event !== 'string') {
-        throw new Error('event failed!')
-      }
-      ipcRenderer.on(event, (_, data) => {
-        callback && callback(data);
-      })
-    },
-    EventsOff(event, callback) {
-      if (typeof event !== 'string') {
-        throw new Error('event failed!')
-      }
-      if(callback){
-        ipcRenderer.removeListener(event, callback)
-      }else{
-        ipcRenderer.removeAllListeners(event)
-      }
     }
-  }
 )

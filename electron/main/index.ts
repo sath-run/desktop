@@ -35,7 +35,7 @@ const indexHtml = join(ROOT_PATH.dist, 'index.html')
 
 async function createWindow() {
     win = new BrowserWindow({
-        title: 'Screening@Home',
+        title: 'SATH',
         icon: join(ROOT_PATH.public, 'electron.png'),
         width: 760,
         height: 820,

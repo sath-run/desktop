@@ -54,9 +54,10 @@ const Password: React.FC<{
     }
   };
   return (
-    <Modal className={styles.pageLogin} open={visible} footer={null} onCancel={onCancel}>
+    <Modal className={styles.pageLogin} open={visible} footer={null} onCancel={onCancel} destroyOnClose>
       <Form
-        className={styles.loginForm}
+          preserve={false}
+          className={styles.loginForm}
         initialValues={{}}
         form={loginForm}
         onFinish={async (values) => {
@@ -64,7 +65,7 @@ const Password: React.FC<{
         }}
       >
         <div className={styles.topTitle}>
-          <div className={styles.logo}>Screening@Home</div>
+          <div className={styles.logo}>SATH</div>
           {t('user.topPasswordTitle')}
         </div>
         <ProFormText
@@ -104,7 +105,7 @@ const Password: React.FC<{
           placeholder={t('user.verifyCode')}
           onGetCaptcha={async (email) => {
             loginForm.validateFields(['account']).then(async () => {
-              const result = await getCode({email: email});
+              const result = await getCode(email);
               if (result.status === 200) {
                 message.success('验证码已发送到邮箱,请注意查收')
               } else {

@@ -44,11 +44,10 @@ export async function updatePassword(data: API.UpdatePasswordParams) {
 /**
  * 忘记密码 获取邮件验证码
  *  */
-export async function getCode(params: API.GetCodeParams) {
+export async function getCode(email: string) {
     return request<null>({
         method: 'POST',
-        url: `${BASE_API}/users/authCode`,
-        data: params
+        url: `${BASE_API}/users/authCode?email=${email}`
     });
 }
 
