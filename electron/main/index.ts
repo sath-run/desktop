@@ -49,7 +49,7 @@ async function createWindow() {
         webPreferences: {
             preload,
             nodeIntegration: true,
-            webSecurity: false,
+            webSecurity: true,
             devTools: true
         },
     })
@@ -74,7 +74,6 @@ async function createWindow() {
 }
 
 app.whenReady().then(createWindow)
-
 app.on('window-all-closed', () => {
     win = null
     if (process.platform !== 'darwin') app.quit()
@@ -84,14 +83,14 @@ app.on('second-instance', () => {
     if (win) {
         // Focus on the main window if the user tried to open another
         if (win.isMinimized()) win.restore()
-        win.focus()
+       win.focus()
     }
 })
 
 app.on('activate', () => {
     const allWindows = BrowserWindow.getAllWindows()
     if (allWindows.length) {
-        allWindows[0].focus()
+       allWindows[0].focus()
     } else {
         createWindow()
     }

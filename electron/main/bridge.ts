@@ -1,6 +1,5 @@
 import {app, BrowserWindow, ipcMain, net} from 'electron'
 
-
 ipcMain.on('postMessage', async (event, message) => {
     switch (message.bridgeName) {
         case 'startJob':
@@ -9,6 +8,12 @@ ipcMain.on('postMessage', async (event, message) => {
         case 'stopJob':
             stopJob(event, message);
             break;
+        case 'request':
+            event.reply('receiveMessage', {
+                bridgeName: 'startJob',
+                cid: message.cid,
+                data: await request(message.data),
+            })
         case 'platform':
             event.reply('receiveMessage', {
                 bridgeName: message.bridgeName,
@@ -39,37 +44,18 @@ ipcMain.on('postMessage', async (event, message) => {
 
 
 const startJob = async (event, message) => {
-    const request = net.request({
+    const result = await request({
         method: 'POST',
         url: 'http://localhost:33566/services/start'
     })
-    request.on('response', (response) => {
-        let dataList = Buffer.alloc(0);
-        response.on('data', (chunk) => {
-            dataList = Buffer.concat([dataList, chunk]);
-        })
-        response.on('end', () => {
-            let body = dataList.toString();
-            try {
-                body = JSON.parse(body);
-            } catch (error) {
-            }
-            ;
-            console.info('body：', body)
-            event.reply('receiveMessage', {
-                bridgeName: 'startJob',
-                cid: message.cid,
-                data: {
-                    status: response.statusCode,
-                    data: body
-                },
-            })
-        })
-        if (response.statusCode === 200) {
-            startListener()
-        }
+    event.reply('receiveMessage', {
+        bridgeName: 'startJob',
+        cid: message.cid,
+        data: result,
     })
-    request.end();
+    if (result.status === 200) {
+        startListener()
+    }
 }
 
 const startListener = async () => {
@@ -93,32 +79,50 @@ const startListener = async () => {
 }
 
 const stopJob = async (event, message) => {
-    const request = net.request({
+    const result = await request({
         method: 'POST',
         url: 'http://localhost:33566/services/stop'
     })
-    request.on('response', (response) => {
-        let dataList = Buffer.alloc(0);
-        response.on('data', (chunk) => {
-            dataList = Buffer.concat([dataList, chunk]);
-        })
-        response.on('end', () => {
-            let body = dataList.toString();
-            try {
-                body = JSON.parse(body);
-            } catch (error) {
-            }
-            ;
-            console.info('body：', body)
-            event.reply('receiveMessage', {
-                bridgeName: 'stopJob',
-                cid: message.cid,
-                data: {
+    event.reply('receiveMessage', {
+        bridgeName: 'stopJob',
+        cid: message.cid,
+        data: result,
+    })
+}
+
+const request = (options) => {
+    return new Promise<{
+        status: number,
+        data: any
+    }>(resolve => {
+        const sendData = JSON.stringify(options.data || '{}');
+        console.info( sendData.length)
+        const request = net.request({...options});
+        request.setHeader('Content-Type', 'application/json')
+        request.on('response', (response) => {
+            let dataList = Buffer.alloc(0);
+            response.on('data', (chunk) => {
+                dataList = Buffer.concat([dataList, chunk]);
+            })
+            response.on('end', () => {
+                let body = dataList.toString();
+                try {
+                    body = JSON.parse(body);
+                } catch (error) {
+                }
+                console.info('response:', response.statusCode)
+                console.info('body：', body)
+                resolve({
                     status: response.statusCode,
                     data: body
-                },
+                })
             })
         })
+        console.info('sendData:', sendData)
+        request.on('error', error => {
+            console.error(error)
+        })
+        request.write(sendData)
+        request.end()
     })
-    request.end();
 }

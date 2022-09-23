@@ -32,10 +32,10 @@ const Login: React.FC<{
   const {t} = useTranslation();
   const [loading, setLoading] = useState(false);
   const handleSubmit = async (values: API.LoginParams & { autoLogin: boolean }) => {
-    setLoading(true);
+    //setLoading(true);
     const result = await login({account: values.account, password: values.password});
     setLoading(false)
-    if (result.success) {
+    if (result.status === 200) {
       onSuccess();
     } else {
       setError(true);

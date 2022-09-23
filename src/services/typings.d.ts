@@ -1,6 +1,6 @@
 declare namespace API {
   type Response<T> = {
-    success: boolean,
+    status: number,
     msg: string;
     data: T
   }
@@ -21,7 +21,7 @@ declare namespace API {
     code: string;
   }
   type GetCodeParams = {
-    account: string;
+    email: string;
   }
   type CreateAccountParams = {
     name: string;

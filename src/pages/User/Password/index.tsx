@@ -43,7 +43,7 @@ const Password: React.FC<{
         code: values.code,
       });
       setLoading(false)
-      if (result.success) {
+      if (result.status === 200) {
         message.success(t('user.updatePasswordSuccess'));
         onSuccess();
       } else {
@@ -104,8 +104,8 @@ const Password: React.FC<{
           placeholder={t('user.verifyCode')}
           onGetCaptcha={async (email) => {
             loginForm.validateFields(['account']).then(async () => {
-              const result = await getCode({account: email});
-              if (result.success) {
+              const result = await getCode({email: email});
+              if (result.status === 200) {
                 message.success('验证码已发送到邮箱,请注意查收')
               } else {
                 throw new Error(result.msg || '验证码发送失败')

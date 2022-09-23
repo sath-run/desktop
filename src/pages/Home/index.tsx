@@ -10,10 +10,7 @@ import Description from "@/pages/Description";
 import Styles from './index.module.less';
 import NewsIcon from './img/single.png';
 
-type ApiResult = {
-  status: Number,
-  data: any
-}
+
 type Status = 'default' | 'waiting' | 'running' | 'complete' | 'noJob';
 type SystemInfo = {
   cpu: number,
@@ -55,7 +52,7 @@ function Home() {
     window.electron?.EventsOn('job-error', ({id}: { id: number }) => {
 
     })
-    window.electron.invoke('startJob', {}, (result: ApiResult) => {
+    window.electron.invoke('startJob', {}, (result: API.Response<null>) => {
       console.info('result:', result)
       if(result.status === 200){
         setStatus('running');

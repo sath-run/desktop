@@ -1,46 +1,55 @@
-import request from '@/utils/request';
+import {request} from '@/utils/net';
 
 /**
  * 登录
  *  */
 export async function login(data: API.LoginParams) {
-  return request<API.Response<API.LoginResult>>('/users/login', {
-    method: 'POST',
-    data,
-  });
+    return request<API.LoginResult>({
+        url: `${BASE_API}/users/login`,
+        method: 'POST',
+        data,
+    });
 }
 
 /**
  * 获取当前用户信息
  *  */
 export async function queryCurrentUser() {
-  return request<API.Response<API.CurrentUser>>('/users/current', {
-    method: 'GET'
-  });
+    return request<API.CurrentUser>({
+        url: `${BASE_API}/users/current`
+    });
 }
 
 /**
  * 退出登录
  *  */
 export async function loginOut() {
-  return request.post<API.Response<null>>('/users/logout');
+    return request<null>({
+        url: `${BASE_API}/users/logout`,
+        method: 'POST',
+    });
 }
 
 /**
  * 修改密码
  *  */
 export async function updatePassword(data: API.UpdatePasswordParams) {
-  return request<API.Response<null>>('/users/password', {
-    method: 'PATCH',
-    data,
-  });
+    return request<null>({
+        method: 'PATCH',
+        url: `${BASE_API}/users/password`,
+        data,
+    });
 }
 
 /**
- * 获取邮件验证码
+ * 忘记密码 获取邮件验证码
  *  */
 export async function getCode(params: API.GetCodeParams) {
-  return request.get<API.Response<null>>('/users/code', {params});
+    return request<null>({
+        method: 'POST',
+        url: `${BASE_API}/users/authCode`,
+        data: params
+    });
 }
 
 
@@ -48,9 +57,9 @@ export async function getCode(params: API.GetCodeParams) {
  * 创建帐号
  *  */
 export async function createAccount(data: API.CreateAccountParams) {
-  console.info('data:', data)
-  return request<API.Response<null>>('/users', {
-    method: 'POST',
-    data,
-  });
+    return request<null>({
+        method: 'POST',
+        url: `${BASE_API}/users`,
+        data,
+    });
 }
