@@ -60,10 +60,15 @@
     width: 450px;
     margin: 50px auto 0;
     .progress {
-      .progress__text {
-        margin-top: 20px;
-        text-align: center;
-        font-size: 16px;
+      position: relative;
+      margin-bottom: 20px;
+      padding-right: 30px;
+      .value {
+        position: absolute;
+        left: 430px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-weight: bold;
       }
     }
     .totalData {

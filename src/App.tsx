@@ -1,30 +1,29 @@
 import {Routes, Route, Navigate} from 'react-router-dom';
-import Home from '@/pages/Home'
-import Integral from "@/pages/Integral";
-import {ConfigProvider} from "antd";
-import {useTranslation} from "react-i18next";
-import enUS from 'antd/es/locale/en_US';
-import zhCN from 'antd/es/locale/zh_CN';
-import {useEffect, useState} from "react";
+import Home from '@/pages/Home';
+import {ChakraProvider} from '@chakra-ui/react';
+import MainLayout from '@/components/MainLayout';
+import {extendTheme} from '@chakra-ui/react';
 import './App.less';
-import MainLayout from "@/components/MainLayout";
+
+const colors = {
+    brand: {
+        500: '#2496ed',
+    },
+}
+
+const theme = extendTheme({ colors })
 
 function App() {
-    const {i18n} = useTranslation();
-    const [locale, setLocal] = useState(zhCN);
-    useEffect(() => {
-        setLocal(i18n.language == 'zh_CN' ? zhCN : enUS);
-    }, [i18n.language])
+    // const {i18n} = useTranslation();
     return <div id='App'>
-        <ConfigProvider locale={locale}>
+        <ChakraProvider theme={theme}>
             <Routes>
-                <Route path='*' element={<Navigate to="/main/home"/>}/>
-                <Route path="/main" element={<MainLayout/>}>
+                <Route path='*' element={<Navigate to='/main/home'/>}/>
+                <Route path='/main' element={<MainLayout/>}>
                     <Route path={'/main/home'} element={<Home/>}/>
-                    <Route path={'/main/integral'} element={<Integral/>}/>
                 </Route>
             </Routes>
-        </ConfigProvider>
+        </ChakraProvider>
     </div>;
 }
 
