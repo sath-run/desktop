@@ -120,7 +120,7 @@ function Home() {
             <Center>
                 <img width={120} height={120} src={Logo}/>
             </Center>
-            <Center fontSize={20}>
+            <Center fontSize={20} mt={5}>
                 利用你的电脑与科学家一同发现治疗疾病的新药物
             </Center>
             {status === 'default' ?
@@ -140,14 +140,14 @@ function Home() {
                     })}
                 </Swiper> :
                 <div className={Styles.statusContainer}>
-                    <Box position={'relative'} pr={30} mb={20}>
+                    <Box position={'relative'} pr={30} mb={5}>
                         <Progress colorScheme='blue' size='md' isAnimated value={percent} borderRadius={5}/>
                         <Text position={'absolute'} left={430} top={'50%'} transform={'translateY(-50%)'} fontWeight={'bold'} color={'brand.500'}>{Math.ceil(percent * 100) / 100}%</Text>
                     </Box>
-                    <Text textAlign={'center'} fontSize={'16px'}>
+                    <Center fontSize={16}>
                         正在计算蛋白质和小分子的结合活性，<Link color={'brand.500'}
                                                                onClick={() => setShowDescription(true)}>了解更多</Link>
-                    </Text>
+                    </Center>
                     <Box className={Styles.totalData} borderRadius={10} borderWidth={1} borderColor={'gray.200'}>
                         <SimpleGrid columns={4} spacing={'10px'}>
                             <Box height={100} textAlign={'center'} paddingTop={'20px'}>
