@@ -29,7 +29,7 @@ function Home() {
     const [jobCount, setJobCount] = useState(0);
     const [score, setScore] = useState(100);
     const [showLogin, setShowLogin] = useState(false);
-    const [showRegister, setShowRegister] = useState(true);
+    const [showRegister, setShowRegister] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showDescription, setShowDescription] = useState(false);
     const [userInfo, setUserInfo] = useState<API.CurrentUser>({} as API.CurrentUser);
