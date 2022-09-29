@@ -13,8 +13,8 @@ ipcMain.on('postMessage', async (event, message) => {
             break;
         case 'request':
             const result = await request(message.data);
-            event.reply('receiveMessage', {
-                bridgeName: 'request',
+            event.reply(message.cid, {
+                bridgeName: message.bridgeName,
                 cid: message.cid,
                 data: result,
             })
@@ -23,7 +23,7 @@ ipcMain.on('postMessage', async (event, message) => {
             setToken(event, message);
             break;
         case 'platform':
-            event.reply('receiveMessage', {
+            event.reply(message.cid, {
                 bridgeName: message.bridgeName,
                 cid: message.cid,
                 data: process.platform,
@@ -37,7 +37,7 @@ ipcMain.on('postMessage', async (event, message) => {
                 cupUsage += appMetric.cpu.percentCPUUsage;
                 memory += appMetric.memory.workingSetSize;
             })
-            event.reply('receiveMessage', {
+            event.reply(message.cid, {
                 bridgeName: message.bridgeName,
                 cid: message.cid,
                 data: {
@@ -56,7 +56,7 @@ const startJob = async (event: IpcMainEvent, message: any) => {
         method: 'POST',
         url: 'http://localhost:33566/services/start'
     })
-    event.reply('receiveMessage', {
+    event.reply(message.cid, {
         bridgeName: 'startJob',
         cid: message.cid,
         data: result,
@@ -71,7 +71,7 @@ const setToken = async (event: IpcMainEvent, message: any) => {
         method: 'PATCH',
         url: 'http://localhost:33566/users/token'
     })
-    event.reply('receiveMessage', {
+    event.reply(message.cid, {
         bridgeName: 'setToken',
         cid: message.cid,
         data: result,
@@ -103,7 +103,7 @@ const stopJob = async (event: IpcMainEvent, message: any) => {
         method: 'POST',
         url: 'http://localhost:33566/services/stop'
     })
-    event.reply('receiveMessage', {
+    event.reply(message.cid, {
         bridgeName: 'stopJob',
         cid: message.cid,
         data: result,

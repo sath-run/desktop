@@ -40,16 +40,14 @@
     "uuid": "^8.3.2",
     "vite": "^3.0.7",
     "vite-plugin-electron": "^0.9.0",
-    "vite-plugin-imp": "^2.2.0"
-  },
-  "env": {
-    "VITE_DEV_SERVER_HOST": "127.0.0.1",
-    "VITE_DEV_SERVER_PORT": 7777
-  },
-  "dependencies": {
+    "vite-plugin-imp": "^2.2.0",
     "@chakra-ui/react": "^2.3.4",
     "@emotion/react": "^11",
     "@emotion/styled": "^11",
     "framer-motion": "^6"
+  },
+  "env": {
+    "VITE_DEV_SERVER_HOST": "127.0.0.1",
+    "VITE_DEV_SERVER_PORT": 7777
   }
 }

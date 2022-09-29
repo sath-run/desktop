@@ -4,9 +4,9 @@ import UserLogin from './components/Login';
 import UserCreate from './components/Create';
 import UserPassword from './components/Password';
 import Description from './components/Description';
-import {useToast, Link, Progress, Box, Text, SimpleGrid} from '@chakra-ui/react';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Pagination, Autoplay } from "swiper";
+import {useToast, Link, Progress, Box, Text, SimpleGrid, Center, Flex} from '@chakra-ui/react';
+import {Swiper, SwiperSlide} from 'swiper/react';
+import {Pagination, Autoplay} from 'swiper';
 import 'swiper/less';
 import 'swiper/less/navigation';
 import 'swiper/less/pagination';
@@ -29,7 +29,7 @@ function Home() {
     const [jobCount, setJobCount] = useState(0);
     const [score, setScore] = useState(100);
     const [showLogin, setShowLogin] = useState(false);
-    const [showRegister, setShowRegister] = useState(false);
+    const [showRegister, setShowRegister] = useState(true);
     const [showPassword, setShowPassword] = useState(false);
     const [showDescription, setShowDescription] = useState(false);
     const [userInfo, setUserInfo] = useState<API.CurrentUser>({} as API.CurrentUser);
@@ -115,29 +115,35 @@ function Home() {
                 break;
         }
     };
-    return (<div className={Styles.page}>
-        <div className={Styles.pageTitle}>
-            <img className={Styles.logo}  src={Logo}/>
-            <div className={Styles.desc}>利用你的电脑与科学家一同发现治疗疾病的新药物</div>
+    return (<Box pl={120} pr={120} pt={30} pb={30}>
+        <Box>
+            <Center>
+                <img width={120} height={120} src={Logo}/>
+            </Center>
+            <Center fontSize={20}>
+                利用你的电脑与科学家一同发现治疗疾病的新药物
+            </Center>
             {status === 'default' ?
                 <Swiper className={Styles.newsList} pagination={true} modules={[Pagination, Autoplay]} autoplay={true}>
                     {newsList.map((news, index) => {
                         return <SwiperSlide key={`news_${index}`}>
-                            <div className={Styles.news}>
-                                <img className={Styles.news__img} src={news.img}/>
-                                <div className={Styles.news__title}>{news.title}<Link color={'brand.500'}
-                                                                                      style={{marginLeft: 5}}
-                                                                                      onClick={() => setShowDescription(true)}>更多详情</Link>
-                                </div>
-                            </div>
-                        </SwiperSlide>;
+                            <Flex className={Styles.news}>
+                                <img width={240} src={news.img}/>
+                                <Center className={Styles.news__title} fontSize={16} lineHeight={25}>
+                                    <Box>{news.title}
+                                        <Link color={'brand.500'} ml={5}
+                                              onClick={() => setShowDescription(true)}>更多详情</Link>
+                                    </Box>
+                                </Center>
+                            </Flex>
+                        </SwiperSlide>
                     })}
                 </Swiper> :
                 <div className={Styles.statusContainer}>
-                    <div className={Styles.progress}>
+                    <Box position={'relative'} pr={30} mb={20}>
                         <Progress colorScheme='blue' size='md' isAnimated value={percent} borderRadius={5}/>
-                        <Text className={Styles.value} color={'brand.500'}>{Math.ceil(percent * 100) / 100}%</Text>
-                    </div>
+                        <Text position={'absolute'} left={430} top={'50%'} transform={'translateY(-50%)'} fontWeight={'bold'} color={'brand.500'}>{Math.ceil(percent * 100) / 100}%</Text>
+                    </Box>
                     <Text textAlign={'center'} fontSize={'16px'}>
                         正在计算蛋白质和小分子的结合活性，<Link color={'brand.500'}
                                                                onClick={() => setShowDescription(true)}>了解更多</Link>
@@ -158,7 +164,7 @@ function Home() {
                                 <Text fontSize={30} fontWeight={500} color='brand.500'>{systemInfo.cpu}%</Text>
                             </Box>
                             <Box height={100} textAlign={'center'} paddingTop={'20px'}>
-                                <Text >内存占用率</Text>
+                                <Text>内存占用率</Text>
                                 <Text fontSize={30} fontWeight={500} color='brand.500'>{systemInfo.memory}%</Text>
                             </Box>
                         </SimpleGrid>
@@ -168,12 +174,12 @@ function Home() {
             }
             {['default', 'noJob'].includes(status) ? <PlayCircleFilled className={Styles.btnStart} onClick={onStart}/> :
                 <PauseCircleFilled className={Styles.btnStop} onClick={onStop}/>}
-            {!userInfo.name && <div className={Styles.footer}>
+            {!userInfo.name && <Center pt={50} fontSize={16}>
                 <Link color={'brand.500'} onClick={() => {
                     setShowLogin(true);
                 }}>登录账户</Link>,以便更好的保存你的计算积分
-            </div>}
-        </div>
+            </Center>}
+        </Box>
         <UserLogin visible={showLogin} onCancel={() => setShowLogin(false)} onSuccess={() => {
             setShowLogin(false);
             setUserInfo({
@@ -190,7 +196,7 @@ function Home() {
             setShowLogin(true);
         }} onCommand={onCommand}/>
         <Description visible={showDescription} onCancel={() => setShowDescription(false)}/>
-    </div>);
+    </Box>);
 }
 
 export default Home;

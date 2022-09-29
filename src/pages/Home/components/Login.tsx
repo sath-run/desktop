@@ -72,9 +72,10 @@ const Login: React.FC<{
                             const errors: FormikErrors<API.LoginParams> = {};
                             if (!values.account) {
                                 errors.account = t('login.accountTip');
-                            }
-                            if (!values.password) {
+                            }else if (!values.password) {
                                 errors.password = t('login.passwordTip');
+                            }else{
+                                setError('')
                             }
                             return errors;
                         }}

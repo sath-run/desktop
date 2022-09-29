@@ -31,8 +31,8 @@ contextBridge.exposeInMainWorld(
             invokeCallbacks[invokeCId] = callback
             message.cid = invokeCId
             ipcRenderer.send('postMessage', message)
-            ipcRenderer.once('receiveMessage', (_, message): void => {
-                const {data, cid, error} = message
+            ipcRenderer.once(invokeCId, (_, message): void => {
+                const {data, cid, error} = message;
                 if (cid) {
                     if (typeof error !== 'undefined') {
                         invokeCallbacks[cid](error)

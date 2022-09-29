@@ -74,6 +74,7 @@ const Login: React.FC<{
                 <ModalHeader>{t('user.topTitle')}</ModalHeader>
                 <ModalBody>
                     <Formik
+                        validateOnBlur={true}
                         initialValues={{
                             name: '',
                             account: '',
@@ -87,6 +88,9 @@ const Login: React.FC<{
                                 errors.name = t('user.nameTip');
                             } else if (!values.account) {
                                 errors.account = t('login.accountTip');
+                            }else if (!/^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/.test(values.account)) {
+                                errors.account = t('user.invalidEmail');
+                                return;
                             } else if (!values.code) {
                                 errors.code = t('user.verifyCodeTip');
                             } else if (!values.password) {
@@ -116,9 +120,9 @@ const Login: React.FC<{
                             </Field>
                             <Field name='account' type={'email'}>
                                 {({field, form, meta}: FieldProps) => (
-                                    <FormControl mt={5} isInvalid={meta.touched && !!form.errors.account}>
-                                        <FormLabel>{t('login.account')}:</FormLabel>
-                                        <Input {...field} placeholder={t('login.accountTip')}/>
+                                    <FormControl mt={5} isInvalid={!!form.errors.account}>
+                                        <FormLabel>{t('user.email')}:</FormLabel>
+                                        <Input {...field} placeholder={t('user.emailTip')}/>
                                         {meta.touched && <FormErrorMessage>{form.errors.account}</FormErrorMessage>}
                                     </FormControl>
                                 )}
@@ -132,35 +136,41 @@ const Login: React.FC<{
                                             <InputRightElement width={'auto'}>
                                                 <Button colorScheme='blue'
                                                         variant='ghost' onClick={async () => {
-                                                    if (form.values.account && /^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/.test(form.values.account)) {
-                                                        setSending(true);
-                                                        const result = await getCode(form.values.account);
-                                                        console.info('result:', result);
-                                                        if (result.status === 200) {
-                                                            Toast({
-                                                                title: t('user.sendCodeSuccess'),
-                                                                status: 'success',
-                                                                duration: 3000,
-                                                                isClosable: false,
+                                                    if (!form.values.account) {
+                                                        form.setFieldError('account', t('login.accountTip'));
+                                                        return;
+                                                    }
+                                                    if (!/^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/.test(form.values.account)) {
+                                                        form.setFieldError('account', t('user.invalidEmail'));
+                                                        return;
+                                                    }
+                                                    setSending(true);
+                                                    const result = await getCode(form.values.account);
+                                                    console.info('result:', result);
+                                                    if (result.status === 200) {
+                                                        Toast({
+                                                            title: t('user.sendCodeSuccess'),
+                                                            status: 'success',
+                                                            duration: 3000,
+                                                            isClosable: false,
+                                                        });
+                                                        taskId.current = setInterval(() => {
+                                                            setCountDown(prevState => {
+                                                                if (prevState === 0) {
+                                                                    clearInterval(taskId.current);
+                                                                    return 60;
+                                                                }
+                                                                return prevState - 1;
                                                             });
-                                                            taskId.current = setInterval(() => {
-                                                                setCountDown(prevState => {
-                                                                    if (prevState === 0) {
-                                                                        clearInterval(taskId.current);
-                                                                        return 60;
-                                                                    }
-                                                                    return prevState - 1;
-                                                                });
-                                                            }, 1000);
-                                                        } else {
-                                                            setSending(false);
-                                                            Toast({
-                                                                title: result.msg || '验证码发送失败',
-                                                                status: 'error',
-                                                                duration: 3000,
-                                                                isClosable: false,
-                                                            });
-                                                        }
+                                                        }, 1000);
+                                                    } else {
+                                                        setSending(false);
+                                                        Toast({
+                                                            title: result.msg || '验证码发送失败',
+                                                            status: 'error',
+                                                            duration: 3000,
+                                                            isClosable: false,
+                                                        });
                                                     }
                                                 }}
                                                 >{sending ? `${countDown}秒后发送` : t('user.getVerifyCode')}</Button>
@@ -211,7 +221,7 @@ const Login: React.FC<{
                                 </Box>
                                 <Box textAlign={'right'}>
                                     <Link color={'brand.500'}
-                                          onClick={() => onCommand('createAccount')}>{t('login.createAccount')}</Link>
+                                          onClick={() => onCommand('resetPassword')}>{t('login.resetPassword')}</Link>
                                 </Box>
                             </SimpleGrid>
                         </Form>
