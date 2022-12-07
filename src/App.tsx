@@ -1,6 +1,6 @@
 import {Routes, Route, Navigate} from 'react-router-dom';
 import Home from '@/pages/Home';
-import {ChakraProvider} from '@chakra-ui/react';
+import { Box, ChakraProvider } from '@chakra-ui/react';
 import MainLayout from '@/components/MainLayout';
 import {extendTheme} from '@chakra-ui/react';
 
@@ -13,8 +13,7 @@ const colors = {
 const theme = extendTheme({ colors })
 
 function App() {
-    // const {i18n} = useTranslation();
-    return <div id='App'>
+    return <Box id='App' h={'full'} w={'full'}>
         <ChakraProvider theme={theme}>
             <Routes>
                 <Route path='*' element={<Navigate to='/main/home'/>}/>
@@ -23,7 +22,7 @@ function App() {
                 </Route>
             </Routes>
         </ChakraProvider>
-    </div>;
+    </Box>;
 }
 
 export default App;

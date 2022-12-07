@@ -3,7 +3,6 @@ import {BrowserRouter} from 'react-router-dom';
 import './style.less';
 import App from './App';
 import './locales';
-import {platform} from "os";
 type Platform =
   'aix'
   | 'android'
