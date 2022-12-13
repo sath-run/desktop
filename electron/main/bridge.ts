@@ -1,16 +1,14 @@
-import {app, BrowserWindow, ipcMain, net} from 'electron'
-import IpcMainEvent = Electron.IpcMainEvent;
+import {app, BrowserWindow, ipcMain, net, shell} from 'electron'
 
 type ClientRequestConstructorOptions = Electron.ClientRequestConstructorOptions;
 
+const engineAddress = 'http://localhost:33566';
+
 ipcMain.on('postMessage', async (event, message) => {
     switch (message.bridgeName) {
-        case 'startJob':
-            startJob(event, message);
+        case 'startListener':
+            startListener();
             break
-        case 'stopJob':
-            stopJob(event, message);
-            break;
         case 'request':
             const result = await request(message.data);
             event.reply(message.cid, {
@@ -19,15 +17,15 @@ ipcMain.on('postMessage', async (event, message) => {
                 data: result,
             })
             break;
-        case 'setToken':
-            setToken(event, message);
-            break;
         case 'platform':
             event.reply(message.cid, {
                 bridgeName: message.bridgeName,
                 cid: message.cid,
                 data: process.platform,
             })
+            break
+        case 'openUrl':
+            shell.openExternal(message.data);
             break
         case 'systemInfo':
             const systemMemoryInfo = process.getSystemMemoryInfo();
@@ -51,36 +49,9 @@ ipcMain.on('postMessage', async (event, message) => {
 })
 
 
-const startJob = async (event: IpcMainEvent, message: any) => {
-    const result = await request({
-        method: 'POST',
-        url: 'http://localhost:33566/services/start'
-    })
-    event.reply(message.cid, {
-        bridgeName: 'startJob',
-        cid: message.cid,
-        data: result,
-    })
-    if (result.status === 200) {
-        startListener()
-    }
-}
-
-const setToken = async (event: IpcMainEvent, message: any) => {
-    const result = await request({
-        method: 'PATCH',
-        url: 'http://localhost:33566/users/token'
-    })
-    event.reply(message.cid, {
-        bridgeName: 'setToken',
-        cid: message.cid,
-        data: result,
-    })
-}
-
 const startListener = async () => {
     const request = net.request({
-        url: 'http://localhost:33566/jobs/current/stream'
+        url: `${engineAddress}/jobs/current/stream`
     })
     request.on('response', (response) => {
         response.on('data', (chunk) => {
@@ -96,18 +67,6 @@ const startListener = async () => {
         })
     })
     request.end();
-}
-
-const stopJob = async (event: IpcMainEvent, message: any) => {
-    const result = await request({
-        method: 'POST',
-        url: 'http://localhost:33566/services/stop'
-    })
-    event.reply(message.cid, {
-        bridgeName: 'stopJob',
-        cid: message.cid,
-        data: result,
-    })
 }
 
 const request = (options: ClientRequestConstructorOptions & { headers?: { [propName: string]: string }, data?: any }) => {
@@ -134,15 +93,12 @@ const request = (options: ClientRequestConstructorOptions & { headers?: { [propN
                     body = JSON.parse(body);
                 } catch (error) {
                 }
-                console.info('response:', response.statusCode)
-                console.info('body：', body)
                 resolve({
                     status: response.statusCode,
                     data: body
                 })
             })
         })
-        console.info('sendData:', JSON.stringify(options.data || '{}'))
         request.on('error', error => {
             console.error(error)
         })

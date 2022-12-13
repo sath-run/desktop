@@ -5,23 +5,21 @@ declare namespace API {
     data: T
   }
   type LoginParams = {
-    account: string;
+    email: string;
     password: string;
   }
   type LoginResult = {
     token: string
+    message: string
   }
-  type CurrentUser = {
-    name: string;
-    avatar: string;
+  type LoginInfo = {
+    isUser: boolean;
+    token: string;
   }
   type UpdatePasswordParams = {
     account: string;
     password: string;
     code: string;
-  }
-  type GetCodeParams = {
-    email: string;
   }
   type CreateAccountParams = {
     name: string;
@@ -29,29 +27,9 @@ declare namespace API {
     code: string;
     password: string;
   }
-  type Option = {
-    name: string;
-    value: string;
-  }
-  type TaskJob = {
-    id: number;
-    algo?: string;
-    status?: string;
-    dispatchedAt?: number;
-    completedAt?: number;
-    progress?: number;
-  }
   type JobsParams = {
     pageIndex: number,
     pageSize: number,
-  }
-  type TaskIntegral = {
-    id: number;
-    jobId: number;
-    algo: string;
-    score: number;
-    dispatchedAt: string;
-    completedAt: string;
   }
   type JobsIntegralParams = {
     pageIndex: number,

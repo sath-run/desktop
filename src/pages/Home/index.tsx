@@ -1,8 +1,6 @@
 import Logo from '@/assets/imgs/logo.png';
 import { useEffect, useState } from 'react';
 import UserLogin from './components/Login';
-import UserCreate from './components/Create';
-import UserPassword from './components/Password';
 import Description from './components/Description';
 import {
   useToast,
@@ -12,7 +10,6 @@ import {
   Text,
   SimpleGrid,
   Center,
-  Flex,
   Grid, Heading
 } from '@chakra-ui/react';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -22,6 +19,8 @@ import 'swiper/less/navigation';
 import 'swiper/less/pagination';
 import { PlayCircleFilled, PauseCircleFilled } from '@ant-design/icons';
 import NewsIcon from './img/single.png';
+import { request } from '@/utils/net';
+import { login } from '@/services/user';
 
 type Status = 'default' | 'waiting' | 'running' | 'complete' | 'noJob';
 type SystemInfo = {
@@ -37,10 +36,8 @@ function Home() {
   const [jobCount, setJobCount] = useState(0);
   const [score, setScore] = useState(100);
   const [showLogin, setShowLogin] = useState(false);
-  const [showRegister, setShowRegister] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [showDescription, setShowDescription] = useState(false);
-  const [userInfo, setUserInfo] = useState<API.CurrentUser>({} as API.CurrentUser);
+  const [loginInfo, setLoginInfo] = useState<API.LoginInfo>({} as API.LoginInfo);
   const [systemInfo, setSystemInfo] = useState<SystemInfo>({
     cpu: 0,
     memory: 0,
@@ -61,17 +58,19 @@ function Home() {
     window.electron?.EventsOn('no-job', () => {
       setStatus('noJob');
     });
-    window.electron?.EventsOn('job-error', ({ id }: { id: number }) => {
-
-    });
-    window.electron.invoke('startJob', {}, (result: API.Response<null>) => {
+    window.electron?.EventsOn('job-error', ({ id }: { id: number }) => {});
+    request<{ message: string }>({
+      url: `${ENGINE_API}/services/start`,
+      method: 'POST'
+    }).then(result => {
       console.info('result:', result);
-      if (result.status === 200) {
+      if ([200, 201].includes(result.status)) {
         setStatus('running');
+        window.electron.invoke('startListener', {}, () => {});
       } else {
         Toast({
           title: '启动失败',
-          description: result.data,
+          description: result.data.message,
           status: 'error',
           duration: 3000,
           isClosable: true,
@@ -92,31 +91,48 @@ function Home() {
     setPercent(0);
     window.electron?.EventsOff('progress');
     window.electron?.EventsOff('no-job');
-    window.electron.invoke('stopJob', {}, () => {
+    request({ url: `${ENGINE_API}/services/stop`, method: 'POST' });
+  };
+  const getToken = () => {
+    request<API.LoginInfo>(`${ENGINE_API}/users/token`).then(result => {
+      if (result.status === 200) {
+        setLoginInfo(result.data || {});
+      }
     });
   };
   useEffect(() => {
+    getToken();
     taskId = setInterval(() => {
       window.electron.invoke('systemInfo', {}, (result: { cpu: number, memory: number }) => {
         setSystemInfo(result);
       });
     }, 2000);
+    window.electron?.EventsOn('openLogin', () => {
+      !loginInfo.isUser && setShowLogin(true);
+    })
+    window.electron?.EventsOn('autoLogin', async ({token}:{token: string}) => {
+      console.info('token:', token)
+      const [email, password] = window.atob(token);
+      const result = await login({ email, password });
+      if (result.status === 200) {
+        getToken();
+      }
+    })
     return function cleanup() {
       window.electron?.EventsOff('progress');
       window.electron?.EventsOff('no-job');
+      window.electron?.EventsOff('login');
       clearInterval(taskId);
     };
   }, []);
   const onCommand = (cmd: 'createAccount' | 'resetPassword' | 'login') => {
-    setShowPassword(false);
     setShowLogin(false);
-    setShowRegister(false);
     switch (cmd) {
       case 'createAccount':
-        setShowRegister(true);
+        window.electron.invoke('openUrl', 'https://www.sath.run/user/create');
         break;
       case 'resetPassword':
-        setShowPassword(true);
+        window.electron.invoke('openUrl', 'https://www.sath.run/user/password');
         break;
       case 'login':
         setShowLogin(true);
@@ -184,26 +200,15 @@ function Home() {
       {['default', 'noJob'].includes(status) ?
         <Center><Box _hover={{ opacity: 0.9 }} mt={'80px'} cursor={'pointer'} w={'80px'} h={'80px'} fontSize={'80px'} color={'brand.500'} onClick={onStart}><PlayCircleFilled /></Box></Center> :
         <Center><Box cursor={'pointer'} mt={'80px'} w={'80px'} h={'80px'} fontSize={'80px'} color={'red.500'} onClick={onStop}><PauseCircleFilled /></Box></Center>}
-      {!userInfo.name && <Center pt={50} fontSize={16}>
-          <Link color={'brand.500'} onClick={() => {
+      {!loginInfo.isUser && <Center pt={50} fontSize={16}>
+          <Link cursor={'pointer'} color={'brand.500'} onClick={() => {
             setShowLogin(true);
           }}>登录账户</Link>,以便更好的保存你的计算积分
       </Center>}
     </Box>
     <UserLogin visible={showLogin} onCancel={() => setShowLogin(false)} onSuccess={() => {
       setShowLogin(false);
-      setUserInfo({
-        name: '2222',
-        avatar: '',
-      });
-    }} onCommand={onCommand} />
-    <UserCreate visible={showRegister} onCancel={() => setShowRegister(false)} onSuccess={() => {
-      setShowRegister(false);
-      setShowLogin(true);
-    }} onCommand={onCommand} />
-    <UserPassword visible={showPassword} onCancel={() => setShowPassword(false)} onSuccess={() => {
-      setShowPassword(false);
-      setShowLogin(true);
+      getToken();
     }} onCommand={onCommand} />
     <Description visible={showDescription} onCancel={() => setShowDescription(false)} />
   </Box>);

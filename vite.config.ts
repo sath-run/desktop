@@ -72,8 +72,7 @@ export default defineConfig({
     }
   },
   define: {
-    BASE_API: JSON.stringify('http://121.196.174.105:8088/api'),
-    DOCKER_ADDRESS: JSON.stringify('121.196.174.105:50051')
+    ENGINE_API: JSON.stringify('http://localhost:33566'),
   },
   server: {
     host: pkg.env.VITE_DEV_SERVER_HOST,
