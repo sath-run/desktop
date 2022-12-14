@@ -21,6 +21,7 @@ import { PlayCircleFilled, PauseCircleFilled } from '@ant-design/icons';
 import NewsIcon from './img/single.png';
 import { request } from '@/utils/net';
 import { login } from '@/services/user';
+import { useTranslation } from 'react-i18next';
 
 type Status = 'default' | 'waiting' | 'running' | 'complete' | 'noJob';
 type SystemInfo = {
@@ -31,6 +32,7 @@ let taskId: NodeJS.Timer;
 
 function Home() {
   const Toast = useToast();
+  const {t} = useTranslation();
   const [status, setStatus] = useState<Status>('default');
   const [percent, setPercent] = useState(0);
   const [jobCount, setJobCount] = useState(0);
@@ -95,6 +97,7 @@ function Home() {
   };
   const getToken = () => {
     request<API.LoginInfo>(`${ENGINE_API}/users/token`).then(result => {
+      console.info('result:', result)
       if (result.status === 200) {
         setLoginInfo(result.data || {});
       }
@@ -112,10 +115,14 @@ function Home() {
     })
     window.electron?.EventsOn('autoLogin', async ({token}:{token: string}) => {
       console.info('token:', token)
-      const [email, password] = window.atob(token);
+      const [email, password] = window.atob(token).split('##');
       const result = await login({ email, password });
+      console.info('result:', result)
       if (result.status === 200) {
         getToken();
+        setTimeout(() => {
+          getToken();
+        }, 10000)
       }
     })
     return function cleanup() {
@@ -144,8 +151,8 @@ function Home() {
       <Center>
         <img width={120} height={120} src={Logo} />
       </Center>
-      <Center><Heading size={'lg'} mt={5}>
-        利用你的电脑与科学家一同发现治疗疾病的新药物
+      <Center><Heading size={'lg'} mt={5} textAlign={'center'}>
+        {t('main.title')}
       </Heading>
       </Center>
       {status === 'default' ?
@@ -164,32 +171,33 @@ function Home() {
             </SwiperSlide>;
           })}
         </Swiper></Box> :
-        <Box w={'450px'} mt={'50px'} mx={'auto'}>
+        <Box w={'550px'} mt={'50px'} mx={'auto'}>
           <Box position={'relative'} pr={'30px'} mb={'10px'}>
             <Progress colorScheme="blue" mb={'20px'} size="md" isAnimated value={percent} borderRadius={5} />
-            <Text position={'absolute'} left={'430px'} top={'50%'} transform={'translateY(-50%)'} fontWeight={'bold'} color={'brand.500'}>{Math.ceil(percent * 100) / 100}%</Text>
+            <Text position={'absolute'} left={'530px'} top={'50%'} transform={'translateY(-50%)'} fontWeight={'bold'} color={'brand.500'}>{Math.ceil(percent * 100) / 100}%</Text>
           </Box>
           <Center fontSize={'16px'}>
-            正在计算蛋白质和小分子的结合活性，<Link color={'brand.500'}
-                                                   onClick={() => setShowDescription(true)}>了解更多</Link>
+            {t('main.working')}
           </Center>
-          <Box mt={'80px'} borderRadius={10} borderWidth={1} borderColor={'gray.200'}>
+          <Center fontSize={'16px'}>
+            <Link color={'brand.500'} onClick={() => setShowDescription(true)}>{t('main.more')}</Link>
+          </Center>
+          <Box mt={'40px'} borderRadius={10} borderWidth={1} borderColor={'gray.200'}>
             <SimpleGrid columns={4} spacing={'10px'}>
               <Box height={100} textAlign={'center'} paddingTop={'20px'}>
-                <Text textAlign={'center'}>已完成任务</Text>
-                <Text fontSize={30} fontWeight={500} color="brand.500">{jobCount}个</Text>
-                {/*<Statistic title={'已完成任务'} value={jobCount} suffix='个'/>*/}
+                <Text textAlign={'center'}>{t('main.taskCompleted')}</Text>
+                <Text fontSize={30} fontWeight={500} color="brand.500">{jobCount}</Text>
               </Box>
               <Box height={100} textAlign={'center'} paddingTop={'20px'}>
-                <Text textAlign={'center'}>已获得积分</Text>
+                <Text textAlign={'center'}>{t('main.points')}</Text>
                 <Text fontSize={30} fontWeight={500} color="brand.500">{score}</Text>
               </Box>
               <Box height={100} textAlign={'center'} paddingTop={'20px'}>
-                <Text textAlign={'center'}>CPU占用率</Text>
+                <Text textAlign={'center'}>{t('main.cpuUsage')}</Text>
                 <Text fontSize={30} fontWeight={500} color="brand.500">{systemInfo.cpu}%</Text>
               </Box>
               <Box height={100} textAlign={'center'} paddingTop={'20px'}>
-                <Text>内存占用率</Text>
+                <Text>{t('main.memoryUsage')}</Text>
                 <Text fontSize={30} fontWeight={500} color="brand.500">{systemInfo.memory}%</Text>
               </Box>
             </SimpleGrid>
@@ -203,7 +211,7 @@ function Home() {
       {!loginInfo.isUser && <Center pt={50} fontSize={16}>
           <Link cursor={'pointer'} color={'brand.500'} onClick={() => {
             setShowLogin(true);
-          }}>登录账户</Link>,以便更好的保存你的计算积分
+          }}>{t('main.signIn')}</Link>,{t('main.signInDesc')}
       </Center>}
     </Box>
     <UserLogin visible={showLogin} onCancel={() => setShowLogin(false)} onSuccess={() => {

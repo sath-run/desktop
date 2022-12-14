@@ -40,7 +40,6 @@
     "react-transition-group": "^4.4.5",
     "swiper": "^8.4.2",
     "typescript": "^4.7.4",
-    "umi-request": "^1.4.0",
     "uuid": "^8.3.2",
     "vite": "^3.0.7",
     "vite-plugin-electron": "^0.9.0",

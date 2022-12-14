@@ -4,7 +4,7 @@ import en from './lang/en_US';
 import zh from './lang/zh_CN';
 import {LANGUAGE} from '@/constants';
 
-const defaultLanguage = (localStorage.getItem(LANGUAGE) || 'zh_CN').split('-').join('_');
+const defaultLanguage = (localStorage.getItem(LANGUAGE) || 'en_US');
 i18n
   .use(initReactI18next) // passes i18n down to react-i18next
   .init({
